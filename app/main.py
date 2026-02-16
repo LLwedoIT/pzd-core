@@ -450,7 +450,7 @@ class App:
         self.icon = None
         self.icon_thread = None
         
-        self.root.title("PZDetector | Presence Zone Utility")
+        self.root.title("PZDetector™ | Presence Zone™ Utility")
         self.root.geometry("520x1200")
         self.root.configure(bg="#030303")
         self.root.resizable(False, True)
@@ -517,7 +517,7 @@ class App:
     def build_ui(self):
         header = tk.Frame(self.root, bg="#030303")
         header.pack(pady=20)
-        tk.Label(header, text="PZDetector", fg="#00ffcc", bg="#030303", font=("Helvetica", 28, "bold")).pack(side="left")
+        tk.Label(header, text="PZDetector™", fg="#00ffcc", bg="#030303", font=("Helvetica", 28, "bold")).pack(side="left")
         
         self.led_canvas = tk.Canvas(header, width=20, height=20, bg="#030303", highlightthickness=0)
         self.led_dot = self.led_canvas.create_oval(4, 4, 16, 16, fill="#111")
@@ -688,7 +688,7 @@ class App:
         }
         menu = (pystray.MenuItem('Show', self.show_window, default=True),
                 pystray.MenuItem('Quit', self.quit_app))
-        self.icon = pystray.Icon("PZDetector", self.icons['empty'], "PZDetector", menu)
+        self.icon = pystray.Icon("PZDetector™", self.icons['empty'], "PZDetector™", menu)
         self.root.protocol('WM_DELETE_WINDOW', self.hide_window)
 
     def hide_window(self):
@@ -851,7 +851,7 @@ class App:
             if not self.sensor.calibration_mode:
                 self.setup_btn.config(text="RE-ENTER CALIBRATION")
                 self.cal_banner.config(bg="#111")
-                self.cal_label.config(text="PZD ACTIVE: GLAZED VISION ON", fg="#444", bg="#111")
+                self.cal_label.config(text="PZDetector™ ACTIVE: GLAZED VISION ON", fg="#444", bg="#111")
                 self.refresh_process_list()
             else:
                 self.setup_btn.config(text="FINISH SETUP & GLAZE")
