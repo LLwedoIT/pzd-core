@@ -28,7 +28,7 @@ from config_service import ConfigService
 from log_service import LogService
 from network_service import NetworkService
 from identity_service import IdentityService
-from license_service import LicenseService
+from license_service_v2 import LicenseService
 
 class HPDManager:
     """Handles low-level OS sleep inhibition (Kernel Level)."""
@@ -407,27 +407,32 @@ class App:
         )
         self.logger.info("PZD Application Started", "App")
 
-        # License/trial check (optional)
+        # License/trial check (enhanced with online validation)
         self.license = None
         if self.config.get_bool("enableLicenseCheck", True):
             self.license = LicenseService(
                 trial_days=self.config.get_int("trialDays", 7),
-                purchase_url=self.config.get_str("purchaseUrl", ""),
+                purchase_url=self.config.get_str("purchaseUrl", "https://pzdetector.com/pricing"),
+                api_url=self.config.get_str("licenseApiUrl", "https://api.pzdetector.com"),
                 logger=self.logger
             )
             self.license.record_check()
-            if self.license.is_trial_expired():
-                self.logger.warning("Trial expired; exiting", "LicenseService")
-                purchase_url = self.config.get_str("purchaseUrl", "")
-                if purchase_url:
-                    open_now = messagebox.askyesno(
-                        "Trial Expired",
-                        "Your trial has expired. Open the purchase page now?"
-                    )
-                    if open_now:
-                        webbrowser.open(purchase_url)
-                else:
-                    messagebox.showwarning("Trial Expired", "Your trial has expired.")
+            
+            # Check if we should revalidate existing license
+            if self.license.is_licensed() and self.license.check_should_validate():
+                self.logger.info("Revalidating license...", "LicenseService")
+                self.license.revalidate_license()
+            
+            # Handle trial expiration
+            if self.license.is_trial_expired() and not self.license.is_licensed():
+                self.logger.warning("Trial expired - needs license", "LicenseService")
+                self._show_trial_expired_dialog()
+            elif self.license.is_licensed():
+                status = self.license.get_status()
+                self.logger.info(f"Licensed: {status['plan']}", "LicenseService")
+            else:
+                days_left = self.license.days_remaining()
+                self.logger.info(f"Trial: {days_left} days remaining", "LicenseService")
                 self.root.quit()
                 return
         
@@ -623,6 +628,27 @@ class App:
         self.audit_log_widget.pack(side="left", fill="both", expand=True, padx=5, pady=5)
         scrollbar.config(command=self.audit_log_widget.yview)
 
+        # License Status Section
+        license_frame = tk.Frame(self.root, bg="#0a0a0a", pady=10)
+        license_frame.pack(fill="x", padx=20, pady=(10, 0))
+        
+        license_header = tk.Frame(license_frame, bg="#0a0a0a")
+        license_header.pack(fill="x", pady=(0, 10))
+        tk.Label(license_header, text="License & Trial", fg="#00ffcc", bg="#0a0a0a", 
+                font=("Helvetica", 11, "bold")).pack(side="left")
+        
+        self.license_status_label = tk.Label(license_frame, text="Loading...", fg="#888", bg="#0a0a0a", 
+                                             font=("Helvetica", 9))
+        self.license_status_label.pack(anchor="w", padx=5, pady=(0, 5))
+        
+        license_btn_frame = tk.Frame(license_frame, bg="#0a0a0a")
+        license_btn_frame.pack(fill="x", padx=5)
+        
+        ttk.Button(license_btn_frame, text="Activate License", command=self.show_license_dialog).pack(side="left", padx=5)
+        ttk.Button(license_btn_frame, text="Purchase", command=self.open_purchase_page).pack(side="left", padx=5)
+        
+        self.update_license_status()
+        
         tk.Label(self.root, text="PEBCAK OPTIMIZED • GUARDIAN MODE ENABLED • PZDETECTOR.COM", 
                  fg="#222", bg="#030303", font=("Helvetica", 7, "bold")).pack(side="bottom", pady=15)
 
@@ -1008,6 +1034,116 @@ class App:
 
         
         self.root.after(100, self.update_loop)
+
+    def update_license_status(self):
+        """Update license status display."""
+        if not self.license:
+            self.license_status_label.config(text="License checking disabled", fg="#666")
+            return
+        
+        status = self.license.get_status()
+        
+        if status['licensed']:
+            # Licensed user
+            plan = status['plan'].replace('price_', '').title()
+            key_preview = status['license_key'][:13] + "..." if status['license_key'] else "Unknown"
+            text = f"✓ Licensed ({plan}) - {key_preview}"
+            color = "#00ffcc"
+        elif status['trial_expired']:
+            # Trial expired
+            text = "⚠ Trial Expired - Purchase required"
+            color = "#ff6600"
+        else:
+            # Active trial
+            days = status['days_remaining']
+            text = f"⏱ Trial Mode - {days} days remaining"
+            color = "#ffcc00" if days <= 3 else "#888"
+        
+        self.license_status_label.config(text=text, fg=color)
+
+    def show_license_dialog(self):
+        """Show license activation dialog."""
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Activate License")
+        dialog.configure(bg="#0a0a0a")
+        dialog.geometry("500x300")
+        dialog.resizable(False, False)
+        
+        # Center dialog
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        # Header
+        tk.Label(dialog, text="Activate PZDetector™ License", fg="#00ffcc", bg="#0a0a0a",
+                font=("Helvetica", 14, "bold")).pack(pady=20)
+        
+        # Instructions
+        instructions = tk.Label(dialog, 
+            text="Enter your license key from the purchase email.\nFormat: PZDT-XXXX-XXXX-XXXX-XXXX",
+            fg="#888", bg="#0a0a0a", font=("Helvetica", 9), justify="center")
+        instructions.pack(pady=(0, 20))
+        
+        # License key entry
+        entry_frame = tk.Frame(dialog, bg="#0a0a0a")
+        entry_frame.pack(pady=10)
+        
+        tk.Label(entry_frame, text="License Key:", fg="#fff", bg="#0a0a0a").pack(side="left", padx=5)
+        license_entry = tk.Entry(entry_frame, width=30, font=("Courier", 11))
+        license_entry.pack(side="left", padx=5)
+        license_entry.focus()
+        
+        # Status label
+        status_label = tk.Label(dialog, text="", fg="#fff", bg="#0a0a0a", font=("Helvetica", 9))
+        status_label.pack(pady=10)
+        
+        def activate():
+            license_key = license_entry.get().strip()
+            if not license_key:
+                status_label.config(text="Please enter a license key", fg="#ff6600")
+                return
+            
+            status_label.config(text="Validating...", fg="#ffcc00")
+            dialog.update()
+            
+            success, message = self.license.activate_license(license_key)
+            
+            if success:
+                status_label.config(text=f"✓ {message}", fg="#00ffcc")
+                self.update_license_status()
+                self.logger.info(f"License activated: {license_key}", "LicenseService")
+                dialog.after(2000, dialog.destroy)
+            else:
+                status_label.config(text=f"✗ {message}", fg="#ff3333")
+        
+        # Buttons
+        btn_frame = tk.Frame(dialog, bg="#0a0a0a")
+        btn_frame.pack(pady=20)
+        
+        ttk.Button(btn_frame, text="Activate", command=activate).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Cancel", command=dialog.destroy).pack(side="left", padx=5)
+        
+        # Bind Enter key
+        license_entry.bind('<Return>', lambda e: activate())
+
+    def open_purchase_page(self):
+        """Open purchase page in browser."""
+        if self.license and self.license.purchase_url:
+            webbrowser.open(self.license.purchase_url)
+        else:
+            webbrowser.open("https://pzdetector.com/pricing")
+
+    def _show_trial_expired_dialog(self):
+        """Show trial expired dialog with purchase option."""
+        response = messagebox.askyesno(
+            "Trial Expired",
+            "Your 7-day trial has expired.\\n\\n"
+            "Purchase a license to continue using PZDetector™.\\n\\n"
+            "Open purchase page now?",
+            icon='warning'
+        )
+        if response:
+            self.open_purchase_page()
+
 
 if __name__ == "__main__":
     root = tk.Tk()
