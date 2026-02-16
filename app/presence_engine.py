@@ -50,7 +50,10 @@ class PresenceEngine:
         self,
         hid_monitor,
         camera_sensor,
-        lock_timeout_seconds: int = DEFAULT_LOCK_TIMEOUT_SECONDS
+        lock_timeout_seconds: int = DEFAULT_LOCK_TIMEOUT_SECONDS,
+        warning_threshold_seconds: int = WARNING_THRESHOLD_SECONDS,
+        identity_service=None,
+        identity_prompt_message: str = "Confirm you're still here"
     ):
         """
         Initialize the Presence Engine.
@@ -63,6 +66,10 @@ class PresenceEngine:
         self.hid_monitor = hid_monitor
         self.camera_sensor = camera_sensor
         self.lock_timeout_seconds = lock_timeout_seconds
+        self.warning_threshold_seconds = warning_threshold_seconds
+        self.identity_service = identity_service
+        self.identity_prompt_message = identity_prompt_message
+        self._identity_checked = False
         
         # State management
         self._current_state = PresenceState.ACTIVE
@@ -74,6 +81,7 @@ class PresenceEngine:
         self._state_changed_handlers = []
         self._lock_triggered_handlers = []
         self._grace_period_started_handlers = []
+        self._identity_prompt_handlers = []
     
     @property
     def current_state(self) -> PresenceState:
@@ -101,6 +109,10 @@ class PresenceEngine:
     def on_grace_period_started(self, handler: Callable[[], None]):
         """Register handler for grace period started."""
         self._grace_period_started_handlers.append(handler)
+
+    def on_identity_prompt(self, handler: Callable[[str], None]):
+        """Register handler for identity prompt events."""
+        self._identity_prompt_handlers.append(handler)
     
     def tick(self):
         """
@@ -123,6 +135,7 @@ class PresenceEngine:
                 self._seconds_remaining = self.lock_timeout_seconds
                 if self._current_state != PresenceState.ACTIVE:
                     self._set_state(PresenceState.ACTIVE)
+            self._identity_checked = False
             return
         
         # User has been idle, decrement countdown
@@ -137,17 +150,29 @@ class PresenceEngine:
             self._seconds_remaining = self.lock_timeout_seconds
             self._set_state(PresenceState.ACTIVE)
         
-        elif self._seconds_remaining <= self.WARNING_THRESHOLD_SECONDS:
+        elif self._seconds_remaining <= self.warning_threshold_seconds:
             # Entering warning state - time for expensive sensor checks
             if self._current_state == PresenceState.ACTIVE:
+                if self.identity_service and not self._identity_checked:
+                    if hasattr(self.identity_service, "is_available") and not self.identity_service.is_available():
+                        self._identity_checked = True
+                    else:
+                        self._trigger_identity_prompt(self.identity_prompt_message)
+                        verified = self.identity_service.verify_user(self.identity_prompt_message)
+                        self._identity_checked = True
+                        if verified:
+                            self._seconds_remaining = self.lock_timeout_seconds
+                            self._set_state(PresenceState.ACTIVE)
+                            return
                 self._set_state(PresenceState.WARNING)
                 self._trigger_grace_period()
                 # Stage 2/3: Poll camera if in warning state
                 self._check_camera_presence()
         
-        elif self._current_state == PresenceState.WARNING and self._seconds_remaining > self.WARNING_THRESHOLD_SECONDS:
+        elif self._current_state == PresenceState.WARNING and self._seconds_remaining > self.warning_threshold_seconds:
             # Activity detected, return to active
             self._set_state(PresenceState.ACTIVE)
+            self._identity_checked = False
     
     def _check_camera_presence(self):
         """
@@ -214,6 +239,14 @@ class PresenceEngine:
                 handler()
             except Exception as e:
                 print(f"[PresenceEngine] Error in grace period handler: {e}")
+
+    def _trigger_identity_prompt(self, message: str):
+        """Fire identity prompt event with message."""
+        for handler in self._identity_prompt_handlers:
+            try:
+                handler(message)
+            except Exception as e:
+                print(f"[PresenceEngine] Error in identity prompt handler: {e}")
     
     def _trigger_lock(self):
         """Fire lock triggered event."""

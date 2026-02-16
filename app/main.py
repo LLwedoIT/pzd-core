@@ -11,6 +11,8 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk, ImageDraw
 from datetime import datetime
+import webbrowser
+from tkinter import messagebox
 import pystray
 import psutil
 try:
@@ -22,6 +24,11 @@ except ImportError:
 from hid_monitor import HIDMonitor
 from presence_engine import PresenceEngine, PresenceState, StateChangeEvent
 from app_awareness import AppAwarenessService
+from config_service import ConfigService
+from log_service import LogService
+from network_service import NetworkService
+from identity_service import IdentityService
+from license_service import LicenseService
 
 class HPDManager:
     """Handles low-level OS sleep inhibition (Kernel Level)."""
@@ -70,8 +77,11 @@ class HPDManager:
 
 class GuardianMode:
     """Manages the Three Acts of Guardian Mode: Lock, Sustain, Complete."""
-    def __init__(self, hpd_manager, audit_log_path="audit_log.json"):
+    def __init__(self, hpd_manager, audit_log_path="audit_log.json", network_service=None, config=None, logger=None):
         self.hpd = hpd_manager
+        self.network_service = network_service
+        self.config = config
+        self.logger = logger
         self.enabled = False
         self.guarded_process_pid = None
         self.guarded_process_name = None
@@ -179,6 +189,15 @@ class GuardianMode:
         self.hpd.allow_sleep()
         self.log_event("ACT_III_COMPLETE", "Sleep inhibition released, hardware sleeping allowed")
         self.lock_triggered = False
+
+        # Optional: Disable network adapters for security (Act III)
+        if self.network_service and self.config:
+            if self.config.get_bool("enableNetworkWiFiControl", False):
+                disabled = self.network_service.disable_all()
+                if disabled:
+                    self.log_event("ACT_III_NETWORK_DISABLED", "Network adapters disabled")
+                else:
+                    self.log_event("ACT_III_NETWORK_FAILED", "Failed to disable network adapters")
         
         return True
     
@@ -378,8 +397,50 @@ class GlazedSensor(threading.Thread):
 class App:
     def __init__(self, root):
         self.root = root
+        
+        # Initialize configuration and logging services
+        self.config = ConfigService("config.json")
+        self.logger = LogService(
+            log_path=self.config.get_str("logPath", "logs/"),
+            max_files=self.config.get_int("logMaxFiles", 10),
+            level=self.config.get_str("logLevel", "INFO")
+        )
+        self.logger.info("PZD Application Started", "App")
+
+        # License/trial check (optional)
+        self.license = None
+        if self.config.get_bool("enableLicenseCheck", True):
+            self.license = LicenseService(
+                trial_days=self.config.get_int("trialDays", 7),
+                purchase_url=self.config.get_str("purchaseUrl", ""),
+                logger=self.logger
+            )
+            self.license.record_check()
+            if self.license.is_trial_expired():
+                self.logger.warning("Trial expired; exiting", "LicenseService")
+                purchase_url = self.config.get_str("purchaseUrl", "")
+                if purchase_url:
+                    open_now = messagebox.askyesno(
+                        "Trial Expired",
+                        "Your trial has expired. Open the purchase page now?"
+                    )
+                    if open_now:
+                        webbrowser.open(purchase_url)
+                else:
+                    messagebox.showwarning("Trial Expired", "Your trial has expired.")
+                self.root.quit()
+                return
+        
+        # Initialize core services
         self.hpd = HPDManager()
-        self.guardian = GuardianMode(self.hpd)
+        self.network_service = NetworkService(self.logger)
+        self.guardian = GuardianMode(
+            self.hpd,
+            audit_log_path=self.config.get_str("auditLogPath", "audit_log.json"),
+            network_service=self.network_service,
+            config=self.config,
+            logger=self.logger
+        )
         self.presence_confidence = 1.0
         self.motion_active = False
         self.sensor_error = False
@@ -402,17 +463,29 @@ class App:
         self.hid_monitor = HIDMonitor()
         self.app_awareness = AppAwarenessService()
         self.presence_engine = None  # Will be initialized after sensor starts
+        self.identity_service = None
+        self.identity_prompt_active = False
+        self.identity_prompt_message = self.config.get_str("identityPromptMessage", "Confirm you're still here")
+        if self.config.get_bool("enableBiometricVerification", False):
+            self.identity_service = IdentityService(self.logger)
         
         self.setup_styles()
         self.build_ui()
+        if self.guardian_var.get():
+            self.toggle_guardian()
         self.setup_tray()
         self.setup_hotkey()
         self.start_sensor()
-        self.app_awareness.start()  # Start app awareness service
+        if self.config.get_bool("enableAppAwareness", True):
+            self.app_awareness.start()  # Start app awareness service
+        self.logger.info("Application initialization complete", "App")
         self.update_loop()
 
     def setup_hotkey(self):
         """Setup global hotkey for Guardian Mode toggle (Ctrl+Alt+Shift+X)."""
+        if not self.config.get_bool("enableGlobalHotkey", True):
+            self.logger.info("Global hotkey disabled by config", "Hotkey")
+            return
         if keyboard is None:
             print("[Hotkey] keyboard module not available, skipping global hotkey")
             return
@@ -426,9 +499,10 @@ class App:
                     self.toggle_guardian()
                     print(f"[Hotkey] Guardian Mode toggled: {not current}")
             
-            # Register global hotkey: Ctrl + Alt + Shift + X
-            keyboard.add_hotkey('ctrl+alt+shift+x', hotkey_callback)
-            print("[Hotkey] Global hotkey registered: Ctrl+Alt+Shift+X to toggle Guardian Mode")
+            # Register global hotkey from config
+            combo = self.config.get_str("globalHotkeyCombo", "ctrl+alt+shift+x")
+            keyboard.add_hotkey(combo, hotkey_callback)
+            print(f"[Hotkey] Global hotkey registered: {combo} to toggle Guardian Mode")
         except Exception as e:
             print(f"[Hotkey] Failed to register global hotkey: {e}")
 
@@ -469,6 +543,18 @@ class App:
         self.progress = ttk.Progressbar(meter_frame, style="PZD.Horizontal.TProgressbar", length=380, mode="determinate")
         self.progress.pack(pady=5)
 
+        # Grace period banner (hidden by default)
+        self.grace_banner = tk.Frame(self.root, bg="#332200")
+        self.grace_label = tk.Label(
+            self.grace_banner,
+            text="WARNING: Locking soon",
+            fg="#ffcc66",
+            bg="#332200",
+            font=("Helvetica", 9, "bold")
+        )
+        self.grace_label.pack(pady=2)
+        self.grace_visible = False
+
         ctrl = tk.LabelFrame(self.root, text=" SIGNAL ARCHITECTURE ", fg="#444", bg="#030303", padx=20, pady=15)
         ctrl.pack(fill="x", padx=60, pady=5)
         
@@ -505,7 +591,8 @@ class App:
         guardian_frame.pack(fill="x", padx=60, pady=10)
 
         # Guardian Mode Enable Toggle
-        self.guardian_var = tk.BooleanVar(value=False)
+        initial_guardian = self.config.get_bool("enableGuardianMode", False)
+        self.guardian_var = tk.BooleanVar(value=initial_guardian)
         self.guardian_check = tk.Checkbutton(guardian_frame, text="Enable Guardian Mode", variable=self.guardian_var, 
                                              command=self.toggle_guardian, fg="#ff6600", bg="#030303", selectcolor="#030303", 
                                              activebackground="#030303", activeforeground="#ff6600")
@@ -594,9 +681,10 @@ class App:
     def setup_tray(self):
         self.icons = {
             'active': self.create_icon_image('#00ffcc'),
-            'decay': self.create_icon_image('#ffff00'),
-            'empty': self.create_icon_image('#ff0000'),
-            'locked': self.create_icon_image('#ff6600')
+            'warning': self.create_icon_image('#ffff00'),
+            'locked': self.create_icon_image('#ff0000'),
+            'paused': self.create_icon_image('#999999'),
+            'empty': self.create_icon_image('#ff6600')
         }
         menu = (pystray.MenuItem('Show', self.show_window, default=True),
                 pystray.MenuItem('Quit', self.quit_app))
@@ -615,29 +703,35 @@ class App:
     
     def _on_presence_state_changed(self, event: StateChangeEvent):
         """Handle presence engine state changes."""
-        print(f"[PresenceEngine] State changed: {event.old_state.value} → {event.new_state.value}")
-        self.guardian.log_event("PRESENCE_STATE_CHANGE", f"{event.old_state.value} → {event.new_state.value}")
+        msg = f"State: {event.old_state.value} → {event.new_state.value}"
+        self.logger.info(msg, "PresenceEngine")
+        self.guardian.log_event("PRESENCE_STATE_CHANGE", msg)
     
     def _on_lock_triggered(self):
         """Handle lock trigger from presence engine."""
-        print("[PresenceEngine] LOCK TRIGGERED")
+        self.logger.warning("Lock triggered by presence engine", "PresenceEngine")
         if self.guardian.enabled:
             self.guardian.act_i_lock_door(0)  # Presence confidence 0 = lock
     
     def _on_grace_period_started(self):
         """Handle grace period started from presence engine."""
-        print("[PresenceEngine] Grace period started - Warning state")
+        self.logger.info("Grace period started - warning state", "PresenceEngine")
+
+    def _on_identity_prompt(self, message: str):
+        """Handle Windows Hello prompt event."""
+        self.identity_prompt_active = True
+        self.logger.info("Windows Hello verification requested", "IdentityService")
     
     def _on_meeting_started(self):
         """Handle meeting app detected."""
-        print("[AppAwareness] Meeting app detected - Pausing presence detection")
+        self.logger.info("Meeting app detected - pausing presence detection", "AppAwareness")
         if self.presence_engine:
             self.presence_engine.pause()
             self.guardian.log_event("MEETING_DETECTED", "Auto-paused presence detection")
     
     def _on_meeting_stopped(self):
         """Handle meeting app closed."""
-        print("[AppAwareness] Meeting app stopped - Resuming presence detection")
+        self.logger.info("Meeting app stopped - resuming presence detection", "AppAwareness")
         if self.presence_engine:
             self.presence_engine.resume()
             self.guardian.log_event("MEETING_ENDED", "Resumed presence detection")
@@ -687,6 +781,12 @@ class App:
             self.hpd.allow_sleep()
         except:
             pass
+        # Re-enable network adapters on exit if we disabled them
+        try:
+            if self.config.get_bool("enableNetworkWiFiControl", False):
+                self.network_service.enable_all()
+        except:
+            pass
         # Clean up
         gc.collect()
         time.sleep(0.2)
@@ -706,21 +806,34 @@ class App:
             gc.collect()
         self.sensor_error = False
         self.sensor = GlazedSensor(self.on_sensor_data, camera_index=self.current_camera_index)
+        
+        # Apply configuration values to sensor
+        self.sensor.pz_reach = self.config.get_float("pz_reach", 0.7)
+        self.sensor.proximity_min = self.config.get_int("proximityMin", 50)
+        self.sensor.sensitivity = self.config.get_int("cameraSensitivity", 350)
+        
         if hasattr(self, 'setup_btn') and "RE-ENTER" in self.setup_btn.cget('text'):
             self.sensor.calibration_mode = False
         self.sensor.start()
+        self.logger.info(f"Camera sensor started (index={self.current_camera_index})", "Sensor")
         
         # Initialize PresenceEngine with HID monitor and camera sensor
+        timeout = self.config.get_int("lockTimeoutSeconds", 60)
+        warning_threshold = self.config.get_int("warningThresholdSeconds", 10)
         self.presence_engine = PresenceEngine(
             hid_monitor=self.hid_monitor,
             camera_sensor=self.sensor,
-            lock_timeout_seconds=60
+            lock_timeout_seconds=timeout,
+            warning_threshold_seconds=warning_threshold,
+            identity_service=self.identity_service,
+            identity_prompt_message=self.identity_prompt_message
         )
         
         # Register event handlers
         self.presence_engine.on_state_changed(self._on_presence_state_changed)
         self.presence_engine.on_lock_triggered(self._on_lock_triggered)
         self.presence_engine.on_grace_period_started(self._on_grace_period_started)
+        self.presence_engine.on_identity_prompt(self._on_identity_prompt)
         
         # Register app awareness handlers
         self.app_awareness.on_meeting_started(self._on_meeting_started)
@@ -791,32 +904,62 @@ class App:
                 new_icon_name = 'active'
                 self.hpd.inhibit_sleep()
                 self.presence_confidence = 1.0
+                self.identity_prompt_active = False
+                if self.grace_visible:
+                    self.grace_banner.pack_forget()
+                    self.grace_visible = False
             
             elif engine_state == PresenceState.WARNING:
-                self.status_var.set(f"⚠ WARNING - {self.presence_engine.seconds_remaining}s until lock")
-                new_icon_name = 'decay'
+                if self.identity_prompt_active:
+                    self.status_var.set("Windows Hello verification required")
+                else:
+                    self.status_var.set(f"⚠ WARNING - {self.presence_engine.seconds_remaining}s until lock")
+                new_icon_name = 'warning'
                 self.hpd.inhibit_sleep()
                 self.presence_confidence = 0.5
+                if not self.grace_visible:
+                    self.grace_banner.pack(fill="x", padx=60, pady=(0, 10))
+                    self.grace_visible = True
+                if self.identity_prompt_active:
+                    self.grace_label.config(text="Verify with Windows Hello to stay unlocked")
+                else:
+                    self.grace_label.config(
+                        text=f"WARNING: Locking in {self.presence_engine.seconds_remaining}s"
+                    )
             
             elif engine_state == PresenceState.LOCKING:
                 self.status_var.set("🔒 LOCKED")
                 new_icon_name = 'locked'
                 self.hpd.allow_sleep()
                 self.presence_confidence = 0.0
+                self.identity_prompt_active = False
+                if self.grace_visible:
+                    self.grace_banner.pack_forget()
+                    self.grace_visible = False
             
             elif engine_state == PresenceState.PAUSED:
                 pause_display = self.presence_engine.get_state_display()
                 self.status_var.set(f"⏸ {pause_display}")
-                new_icon_name = 'decay'
+                new_icon_name = 'paused'
                 self.presence_confidence = 0.5
+                self.identity_prompt_active = False
+                if self.grace_visible:
+                    self.grace_banner.pack_forget()
+                    self.grace_visible = False
         
         # === Legacy logic for backward compatibility ===
         elif self.sensor_error:
             self.status_var.set("HARDWARE ERROR")
             new_icon_name = 'empty'
+            if self.grace_visible:
+                self.grace_banner.pack_forget()
+                self.grace_visible = False
         elif not self.sensor or (self.sensor and self.sensor.calibration_mode):
             self.status_var.set("CALIBRATING...")
-            new_icon_name = 'decay'
+            new_icon_name = 'warning'
+            if self.grace_visible:
+                self.grace_banner.pack_forget()
+                self.grace_visible = False
         elif self.motion_active:
             self.presence_confidence = 1.0
             self.hpd.inhibit_sleep()
@@ -835,7 +978,9 @@ class App:
             
             # === GUARDIAN MODE ACT II: Sustain guarded process ===
             if self.guardian.enabled and self.guardian.guarded_process_pid:
-                self.guardian.act_ii_sustain_process(self.presence_confidence)
+                completed = self.guardian.act_ii_sustain_process(self.presence_confidence)
+                if completed:
+                    self.guardian.act_iii_complete()
             
             if self.presence_confidence <= 0 and not self.guardian.lock_triggered:
                 self.hpd.allow_sleep()
@@ -845,8 +990,11 @@ class App:
                 new_icon_name = 'locked'
             else:
                 self.status_var.set(f"DECAYING: {int(self.presence_confidence*100)}%")
-                new_icon_name = 'decay'
+                new_icon_name = 'warning'
         
+        if self.guardian.enabled and self.guardian.lock_triggered:
+            new_icon_name = 'locked'
+
         if self.icons[new_icon_name] != current_icon:
             self.icon.icon = self.icons[new_icon_name]
 
