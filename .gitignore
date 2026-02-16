@@ -100,3 +100,9 @@ user_settings.json
 sensitive_config.json
 credentials.json
 oauth_token.txt
+
+# License & Payment Data (CRITICAL)
+licenses.json
+license.json
+device_id
+audit_log.json

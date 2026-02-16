@@ -47,6 +47,7 @@ python app/main.py
 | [PROMPT_FOR_IDE_AGENT.md](PROMPT_FOR_IDE_AGENT.md) | Context for IDE agents (VS Code, Cursor) |
 | [GUARDIAN_SPEC.md](GUARDIAN_SPEC.md) | Feature specification for Guardian mode |
 | [ROADMAP.md](ROADMAP.md) | Planned features and development timeline |
+| [STRIPE_SETUP.md](STRIPE_SETUP.md) | Payment integration and licensing setup |
 
 ### Configuration
 
