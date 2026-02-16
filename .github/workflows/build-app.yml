@@ -1,4 +1,4 @@
-name: Build PZD Desktop Application
+name: Build PZDetector™ Desktop Application
 
 on:
   push:

@@ -1,7 +1,7 @@
 [build]
   base = "web/"
   publish = "."
-  command = "echo 'Building PZD Landing Page...'"
+  command = "echo 'Building PZDetector™ Landing Page...'"
 
 [dev]
   command = "python -m http.server 8000"
