@@ -1,0 +1,9 @@
+{
+  "name": "pzdetector-functions",
+  "version": "1.0.0",
+  "description": "Netlify Functions for PZDetector™ License API",
+  "dependencies": {
+    "stripe": "^14.10.0",
+    "@supabase/supabase-js": "^2.38.0"
+  }
+}

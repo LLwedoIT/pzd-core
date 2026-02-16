@@ -285,13 +285,13 @@
     </footer>
 
     <script>
-        // Initialize Stripe (replace with your publishable key)
-        const stripe = Stripe('pk_test_YOUR_PUBLISHABLE_KEY_HERE');
+        // Initialize Stripe (publishable key will be set in Netlify env vars)
+        const stripe = Stripe(window.STRIPE_PUBLISHABLE_KEY || 'pk_test_YOUR_PUBLISHABLE_KEY_HERE');
 
         async function checkout(priceId) {
             try {
-                // Call your backend to create checkout session
-                const response = await fetch('/api/create-checkout-session', {
+                // Call Netlify Function to create checkout session
+                const response = await fetch('/.netlify/functions/create-checkout-session', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -300,6 +300,10 @@
                 });
 
                 const session = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(session.error || 'Failed to create checkout session');
+                }
 
                 // Redirect to Stripe Checkout
                 const result = await stripe.redirectToCheckout({
