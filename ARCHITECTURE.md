@@ -65,11 +65,14 @@ This file in your root ensures Netlify stays in its lane:
 [status]
   # Reports build status back to your GitHub PRs
 
+Developer/BA Notes
 
-Next Steps
+All code comments and UI labels should now treat "Presence Zone" as a proper noun.
 
-Initialize Git: git init pzd-core
+{
+  "proprietary_term": "Presence Zone",
+  "abbreviation": "PZ",
+  "usage": "Presence Zone™",
+  "competitor_block": "Active"
+}
 
-Setup Netlify: Link the pzdetector.com domain and set the Base Directory to web/.
-
-Draft the Web/index.html: Implement the "Presence Zone" visual storytelling using Tailwind.

@@ -20,6 +20,17 @@ Sine-Wave Signaling: Non-intrusive hardware feedback. The camera LED "breathes" 
 
 Zero-Signal Architecture: PZD explicitly avoids Bluetooth and other high-risk wireless protocols, making it suitable for high-security environments.
 
+PZD: Presence Zone Detector
+
+Software-Defined Presence for the Focused Workspace.
+
+PZD is the definitive utility for managing the Presence Zone™ (PZ)—the proprietary spatial concept defining the relationship between human proximity and system vitality. By leveraging industry-standard Human Presence Detection (HPD), PZD establishes a secure, private, and intelligent digital perimeter.
+
+Coining the Presence Zone™
+
+The Presence Zone (PZ) is more than an idle timer; it is a software-defined boundary. We are coining this term to move the industry away from "inactivity" and toward "spatial awareness."
+
+
 Technical Architecture
 
 PZD is built to align with native OS power management kernels:
