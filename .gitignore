@@ -1,31 +1,102 @@
-Python
-
+# Python
 pycache/
 *.py[cod]
 *$py.class
-venv/
+*.so
+.Python
 env/
-.env
-
-Build/Dist
-
+venv/
+ENV/
 build/
+develop-eggs/
 dist/
-*.spec
-*.exe
-*.app
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-IDEs
+# Virtual environments
+.venv
+venv/
+ENV/
 
+# Secrets & Environment Variables
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+secrets.txt
+api_keys.txt
+
+# IDE & Editors
 .vscode/
 .idea/
 *.swp
+*.swo
+*~
+.DS_Store
+.prettierrc
+.eslintrc
 
-OS
+# Build & Distribution
+build/
+dist/
+*.egg-info/
+*.spec
+*.exe
+*.app
+*.dmg
 
+# OS & System Files
 .DS_Store
 Thumbs.db
+*.tmp
+.AppleDouble
+.LSOverride
+ehthumbs.db
 
-Project Specific
-
+# Logs
 *.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Project Specific
+*.log
+debug.jpg
+debug_frame.jpg
+frame_*.jpg
+calibration_data.json
+user_settings.json
+
+# Development
+.cache/
+*.sqlite
+*.db
+
+# Do NOT commit these ever
+sensitive_config.json
+credentials.json
+oauth_token.txt

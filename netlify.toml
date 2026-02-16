@@ -1,0 +1,17 @@
+[build]
+  base = "web/"
+  publish = "."
+  command = "echo 'Building PZD Landing Page...'"
+
+[dev]
+  command = "python -m http.server 8000"
+  port = 8000
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Netlify scoped builds:
+# Only the /web directory is deployed.
+# GitHub Actions handle the /app builds independently.

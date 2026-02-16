@@ -1,35 +1,39 @@
-# PZD Guardian: Service Specification
+PZD Guardian: Service Specification
 
 This document defines the "Three-Act" handover logic that transforms PZD from a jiggler-alternative into a professional security service.
 
-## Act I: "Locks the Door" (Immediate Secure)
+Act I: "Locks the Door" (Immediate Secure)
 
-**Constraint**: Must occur immediately when pzdConfidence reaches 0.0.
+Constraint: Must occur immediately when pzdConfidence reaches 0.0.
 
-**Logic**: Call `ctypes.windll.user32.LockWorkStation()` (Windows) or the equivalent system lock.
+Logic: Call ctypes.windll.user32.LockWorkStation() (Windows) or the equivalent system lock.
 
-**Goal**: Prevent UI tampering by anyone in the room while the user is away.
+Goal: Prevent UI tampering by anyone in the room while the user is away.
 
-## Act II: "Finishes the Job" (Hardware Sustenance)
+Act II: "Finishes the Job" (Hardware Sustenance)
 
-**Constraint**: Only active if a "Guarded Process" is selected.
+Constraint: Only active if a "Guarded Process" is selected.
 
-**Logic**: Maintain a `SetThreadExecutionState` or `caffeinate` inhibition while the process exists in the task list.
+Logic: Maintain a SetThreadExecutionState or caffeinate inhibition while the process exists in the task list.
 
-**Target Tasks**: Renders, Large Downloads, Windows Updates, Code Builds.
+Target Tasks: Renders, Large Downloads, Windows Updates, Code Builds.
 
-## Act III: "Turns out the Lights" (Final Exit)
+Act III: "Turns out the Lights" (Final Exit)
 
-**Constraint**: Triggers the millisecond the Guarded Process vanishes or its CPU usage drops below 1%.
+Constraint: Triggers the millisecond the Guarded Process vanishes or its CPU usage drops below 1%.
 
-**Action Sequence**:
+Action Sequence:
 
-1.  **Sever Network**: Disable the Primary NIC to prevent remote data exfiltration after the asset is rendered.
-2.  **Release Vitality**: End the sleep inhibition.
-3.  **Hardware Sleep**: Allow the machine to enter S3/S4 power states.
+Sever Network: Disable the Primary NIC to prevent remote data exfiltration after the asset is rendered.
 
-## VS Code Agent Implementation Priority
+Release Vitality: End the sleep inhibition.
 
-1.  **Admin Helper**: Build a small sub-module that requests elevation so Act III can actually disable the Wi-Fi/Ethernet.
-2.  **Tray Icon**: Move the main PZD window into a system tray icon (Green/Yellow/Red indicators).
-3.  **Audit Log**: Save the timestamp of Act III events so they can be shown to the user in a "Welcome Back" toast.
+Hardware Sleep: Allow the machine to enter S3/S4 power states.
+
+VS Code Agent Implementation Priority
+
+Admin Helper: Build a small sub-module that requests elevation so Act III can actually disable the Wi-Fi/Ethernet.
+
+Tray Icon: Move the main PZD window into a system tray icon (Green/Yellow/Red indicators).
+
+Audit Log: Save the timestamp of Act III events so they can be shown to the user in a "Welcome Back" toast.

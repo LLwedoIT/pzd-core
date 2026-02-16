@@ -1,0 +1,29 @@
+{
+  "events": [
+    {
+      "timestamp": "2026-02-15T23:37:28.786403",
+      "type": "GUARDIAN_ENABLED",
+      "details": "Guardian Mode activated"
+    },
+    {
+      "timestamp": "2026-02-15T23:38:58.781037",
+      "type": "GUARDIAN_DISABLED",
+      "details": "Guardian Mode deactivated"
+    },
+    {
+      "timestamp": "2026-02-16T01:27:35.638640",
+      "type": "PRESENCE_STATE_CHANGE",
+      "details": "active \u2192 paused"
+    },
+    {
+      "timestamp": "2026-02-16T01:27:35.640064",
+      "type": "MEETING_DETECTED",
+      "details": "Auto-paused presence detection"
+    },
+    {
+      "timestamp": "2026-02-16T01:27:35.713330",
+      "type": "PRESENCE_STATE_CHANGE",
+      "details": "paused \u2192 active"
+    }
+  ]
+}
