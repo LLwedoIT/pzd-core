@@ -244,6 +244,31 @@ In app → License & Trial section:
 - Paste test license key
 - Should activate successfully
 
+### 3.5 Test Desktop App Support Submission
+
+In app → License & Trial section:
+- Click "Contact Support"
+- Fill form:
+  - Email: your@email.com
+  - Subject: "Test support ticket"
+  - Description: "This is a test support request"
+- Click "Submit"
+- Should show: "Ticket #12345 created!"
+
+Check Zendesk Dashboard → Should see new ticket within 2 seconds
+
+### 3.6 Test Support Email Routing
+
+Send email to `support@pzdetector.com`:
+
+```
+To: support@pzdetector.com
+Subject: Test Email Support
+Body: This is a test support email
+```
+
+Check Zendesk → New ticket should auto-create within 5 seconds
+
 ---
 
 ## 🔐 PHASE 4: Security Check (Day 2)
@@ -308,9 +333,9 @@ Should NOT see "Webhook signature verification failed" errors
 
 ---
 
-## 📧 PHASE 5: Email Setup (Optional but Recommended - Day 2-3)
+## 📧 PHASE 5: Email & Support Setup (Day 2-3)
 
-### 5.1 Set up SendGrid
+### 5.1 Set up SendGrid (Optional)
 
 ```
 1. Go to https://sendgrid.com
@@ -322,7 +347,33 @@ Should NOT see "Webhook signature verification failed" errors
 
 Add to Netlify environment variables (see Phase 2.3)
 
-### 5.2 Implement Email Sending
+### 5.2 Set Up Zendesk Support (Recommended)
+
+See [ZENDESK_SETUP.md](ZENDESK_SETUP.md) for complete setup guide.
+
+**Quick Setup:**
+
+1. Create Zendesk account: `https://zendesk.com/signup` (Professional plan)
+2. Get API credentials from Admin Center → Apps & Extensions → APIs & Extensions → Tokens
+3. Add to Netlify environment variables:
+   ```
+   ZENDESK_SUBDOMAIN = your-subdomain
+   ZENDESK_EMAIL = your-email@zendesk.com
+   ZENDESK_API_TOKEN = your-api-token
+   ZENDESK_LICENSE_FIELD_ID = 123456789 (create custom field first)
+   ```
+4. Create support email: `support@pzdetector.com` → Forward to Zendesk
+5. Enable Help Center: Admin Center → Channels → Help Center
+6. Test: Click "Contact Support" in desktop app → Verify ticket in Zendesk
+
+**Features:**
+- Auto-ticket creation from desktop app "Contact Support" button
+- Email support: support@pzdetector.com → auto-creates tickets
+- Help Center portal: `pzdetector.zendesk.com/hc`
+- Auto-reply to customers
+- Ticket dashboard with SLA tracking
+
+### 5.3 Implement Email Sending (Optional)
 
 Update `netlify/functions/webhook.js`:
 
@@ -350,7 +401,7 @@ To activate:
 3. Click "Activate License"
 4. Enter: ${licenseKey}
 
-Need help? Email support@pzdetector.com
+Need help? Click "Contact Support" in the app or email support@pzdetector.com
 
 --
 Chair-to-Keyboard™
@@ -565,7 +616,8 @@ git push origin v1.0.0
 ```
 [ ] Netlify Functions monitoring enabled
 [ ] Stripe webhook monitoring enabled
-[ ] Email delivery confirmed
+[ ] Zendesk support configured
+[ ] Email delivery confirmed (SendGrid or SMTP)
 [ ] Error logs accessible
 [ ] SSL certificate valid
 ```
@@ -598,12 +650,14 @@ git push origin v1.0.0
 ```
 [ ] All test purchases complete successfully
 [ ] License activation works end-to-end
+[ ] Support ticket submission working (Zendesk or email)
+[ ] All Zendesk integrations configured
 [ ] No payment processing errors
 [ ] Webhook delivery confirmed
 [ ] SSL certificate active
 [ ] Domain resolving correctly
 [ ] Support email monitored
-[ ] Team trained on customer support
+[ ] Team trained on Zendesk UI
 [ ] Backup & recovery plan in place
 ```
 

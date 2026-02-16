@@ -1,9 +1,11 @@
 {
   "name": "pzdetector-functions",
   "version": "1.0.0",
-  "description": "Netlify Functions for PZDetector™ License API",
+  "description": "Netlify Functions for PZDetector™",
   "dependencies": {
     "stripe": "^14.10.0",
-    "@supabase/supabase-js": "^2.38.0"
+    "@supabase/supabase-js": "^2.38.0",
+    "@sendgrid/mail": "^7.7.0",
+    "node-zendesk": "^3.0.0"
   }
 }

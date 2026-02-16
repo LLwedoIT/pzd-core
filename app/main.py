@@ -646,6 +646,7 @@ class App:
         
         ttk.Button(license_btn_frame, text="Activate License", command=self.show_license_dialog).pack(side="left", padx=5)
         ttk.Button(license_btn_frame, text="Purchase", command=self.open_purchase_page).pack(side="left", padx=5)
+        ttk.Button(license_btn_frame, text="Contact Support", command=self.show_support_dialog).pack(side="left", padx=5)
         
         self.update_license_status()
         
@@ -1131,6 +1132,129 @@ class App:
             webbrowser.open(self.license.purchase_url)
         else:
             webbrowser.open("https://pzdetector.com/pricing")
+
+    def show_support_dialog(self):
+        """Show support ticket submission dialog."""
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Contact Support")
+        dialog.configure(bg="#0a0a0a")
+        dialog.geometry("600x450")
+        dialog.resizable(False, False)
+        
+        # Center dialog
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        # Header
+        tk.Label(dialog, text="PZDetector™ Support", fg="#00ffcc", bg="#0a0a0a",
+                font=("Helvetica", 14, "bold")).pack(pady=20)
+        
+        # Email field
+        email_frame = tk.Frame(dialog, bg="#0a0a0a")
+        email_frame.pack(fill="x", padx=20, pady=10)
+        tk.Label(email_frame, text="Email:", fg="#fff", bg="#0a0a0a", width=10).pack(side="left")
+        email_entry = tk.Entry(email_frame, width=40, font=("Helvetica", 10))
+        email_entry.pack(side="left", fill="x", expand=True)
+        email_entry.insert(0, self.license.device_id.split("-")[0] + "@example.com" if self.license else "")
+        
+        # Subject field
+        subject_frame = tk.Frame(dialog, bg="#0a0a0a")
+        subject_frame.pack(fill="x", padx=20, pady=10)
+        tk.Label(subject_frame, text="Subject:", fg="#fff", bg="#0a0a0a", width=10).pack(side="left")
+        subject_entry = tk.Entry(subject_frame, width=40, font=("Helvetica", 10))
+        subject_entry.pack(side="left", fill="x", expand=True)
+        
+        # Description field
+        desc_frame = tk.Frame(dialog, bg="#0a0a0a")
+        desc_frame.pack(fill="both", padx=20, pady=10, expand=True)
+        tk.Label(desc_frame, text="Description:", fg="#fff", bg="#0a0a0a").pack(anchor="w")
+        description_text = tk.Text(desc_frame, height=8, font=("Helvetica", 10), bg="#111", fg="#fff")
+        description_text.pack(fill="both", expand=True, pady=(5, 0))
+        
+        # License key preview (read-only)
+        status_frame = tk.Frame(dialog, bg="#0a0a0a")
+        status_frame.pack(fill="x", padx=20, pady=10)
+        
+        if self.license:
+            status = self.license.get_status()
+            license_info = f"License: {status.get('license_key', 'Trial')[:5]}... | OS: {sys.platform.title()}"
+        else:
+            license_info = f"License: Not configured | OS: {sys.platform.title()}"
+        
+        tk.Label(status_frame, text=license_info, fg="#666", bg="#0a0a0a", 
+                font=("Helvetica", 8)).pack(anchor="w")
+        
+        # Status label
+        status_label = tk.Label(dialog, text="", fg="#fff", bg="#0a0a0a", font=("Helvetica", 9))
+        status_label.pack(pady=10)
+        
+        def submit_support():
+            email = email_entry.get().strip()
+            subject = subject_entry.get().strip()
+            description = description_text.get("1.0", "end-1c").strip()
+            
+            if not email or not subject or not description:
+                status_label.config(text="All fields are required", fg="#ff6600")
+                return
+            
+            if "@" not in email:
+                status_label.config(text="Please enter a valid email", fg="#ff6600")
+                return
+            
+            status_label.config(text="Submitting...", fg="#ffcc00")
+            dialog.update()
+            
+            # Get system info
+            try:
+                import platform
+                os_version = f"{platform.system()} {platform.release()}"
+            except:
+                os_version = sys.platform
+            
+            # Build request
+            payload = {
+                "email": email,
+                "subject": subject,
+                "description": description,
+                "osVersion": os_version,
+                "licenseKey": self.license.device_id if self.license else None
+            }
+            
+            try:
+                import requests
+                api_url = self.license.license_api_url if self.license else "https://pzdetector.com"
+                response = requests.post(
+                    f"{api_url}/.netlify/functions/create-support-ticket",
+                    json=payload,
+                    timeout=10
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    ticket_id = result.get("ticketId", "Unknown")
+                    status_label.config(text=f"✓ Ticket #{ticket_id} created! Check your email.", fg="#00ffcc")
+                    self.logger.info(f"Support ticket submitted: #{ticket_id}", "SupportService")
+                    dialog.after(3000, dialog.destroy)
+                else:
+                    error = response.json().get("error", "Unknown error")
+                    status_label.config(text=f"✗ {error}", fg="#ff3333")
+            except requests.exceptions.Timeout:
+                status_label.config(text="✗ Request timeout. Check your internet connection.", fg="#ff3333")
+            except ImportError:
+                status_label.config(text="✗ requests library required. Install: pip install requests", fg="#ff3333")
+            except Exception as e:
+                status_label.config(text=f"✗ Error: {str(e)[:50]}", fg="#ff3333")
+                self.logger.error(f"Support submission error: {e}", "SupportService")
+        
+        # Buttons
+        btn_frame = tk.Frame(dialog, bg="#0a0a0a")
+        btn_frame.pack(pady=20)
+        
+        ttk.Button(btn_frame, text="Submit", command=submit_support).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Cancel", command=dialog.destroy).pack(side="left", padx=5)
+        
+        # Focus on email field
+        email_entry.focus()
 
     def _show_trial_expired_dialog(self):
         """Show trial expired dialog with purchase option."""
