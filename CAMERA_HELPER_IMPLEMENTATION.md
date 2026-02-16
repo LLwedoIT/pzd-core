@@ -1,8 +1,10 @@
 # Camera Helper Implementation Summary
 
+**PZDetector™** by Chair-to-Keyboard™
+
 ## What Was Created
 
-Three complementary tools to manage and release camera resources on Windows systems where the webcam LED stays on after closing PZDetector.
+Three complementary tools to manage and release camera resources on Windows systems where the webcam LED stays on after closing PZDetector™.
 
 ### Files Added
 

@@ -1,12 +1,14 @@
-# Security & Privacy Policy for PZD
+# Security & Privacy Policy for PZDetector™
 
-This document explains PZD's security model and privacy guarantees.
+**By Chair-to-Keyboard™** | *The Human Centric Software Development Company*
+
+This document explains PZDetector™'s security model and privacy guarantees.
 
 ## Core Privacy Principles
 
 ### 1. Glazed Vision™ (Privacy-First Design)
 
-PZD uses **Glazed Vision**—a privacy-by-design approach that fundamentally prevents biometric data collection:
+PZDetector™ uses **Glazed Vision**—a privacy-by-design approach that fundamentally prevents biometric data collection:
 
 **The Process:**
 1. Raw frame: 640x480 pixels
@@ -16,11 +18,11 @@ PZD uses **Glazed Vision**—a privacy-by-design approach that fundamentally pre
 
 **Result:** Motion blobs are visible; faces, eyes, skin tones, and expressions are impossible to discern.
 
-**What PZD detects:**
-✅ Is someone in the zone? (Yes/No)  
+**What PZDetector™ detects:**
+✅ Is someone in the Presence Zone™? (Yes/No)  
 ✅ How close are they? (Proximity blob size)
 
-**What PZD CANNOT detect:**
+**What PZDetector™ CANNOT detect:**
 ❌ Who the person is  
 ❌ Facial features or expressions  
 ❌ Skin tone, age, or gender  

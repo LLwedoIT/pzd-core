@@ -1,11 +1,13 @@
-# PZD Roadmap
+# PZDetector™ Roadmap
 
-This document outlines the planned features and direction of the Presence Zone Detector project.
+**By Chair-to-Keyboard™** | *The Human Centric Software Development Company*
+
+This document outlines the planned features and direction of the PZDetector™ project implementing the Presence Zone™ standard.
 
 ## Current Status (v0.1-alpha)
 
 **Core features shipped:**
-- ✅ Presence Zone detection (area-based)
+- ✅ Presence Zone™ detection (area-based)
 - ✅ Glazed Vision (privacy-first motion detection)
 - ✅ Kitten Buffer (confidence decay)
 - ✅ Multi-camera support

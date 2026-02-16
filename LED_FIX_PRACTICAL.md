@@ -1,8 +1,10 @@
 # Camera LED Issue - Practical Solution
 
+**PZDetector™** by Chair-to-Keyboard™
+
 ## The Situation
 
-Your Windows webcam LED stays on for 2-3 seconds after closing PZDetector. This is a **Windows driver limitation**, not an app bug.
+Your Windows webcam LED stays on for 2-3 seconds after closing PZDetector™. This is a **Windows driver limitation**, not an app bug.
 
 **Why it happens:**
 - Windows DirectShow locks the camera at the OS level

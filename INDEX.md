@@ -1,6 +1,10 @@
-# PZD Documentation Index
+# PZDetector™ Documentation Index
 
-Welcome to PZDetector! This index helps you find the right documentation for your needs.
+**By Chair-to-Keyboard™** | *The Human Centric Software Development Company*
+
+Welcome to PZDetector™! This index helps you find the right documentation for your needs.
+
+PZDetector™ (software engine) manages the Presence Zone™ (proprietary presence boundary standard)—the professional HPD reference standard for defining and managing workspace presence.
 
 ## 🚀 Getting Started
 

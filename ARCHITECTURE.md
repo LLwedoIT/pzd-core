@@ -1,6 +1,8 @@
-PZD Project Architecture & Repository Structure
+# PZDetector™ Project Architecture & Repository Structure
 
-To support both the Python desktop application and the Netlify-hosted landing page, we will use a Monorepo structure. This keeps your branding and your logic in sync.
+**By Chair-to-Keyboard™** | *The Human Centric Software Development Company*
+
+To support both the Python desktop application and the Netlify-hosted landing page, we use a Monorepo structure. This keeps branding and logic in sync.
 
 1. Repository Layout
 

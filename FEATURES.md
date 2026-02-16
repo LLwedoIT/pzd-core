@@ -1,12 +1,14 @@
-# PZD Features & Usage Guide
+# PZDetector™ Features & Usage Guide
 
-This guide explains the features of the Presence Zone Detector and how to use them.
+**By Chair-to-Keyboard™** | *The Human Centric Software Development Company*
+
+This guide explains the features of PZDetector™ and how to use the Presence Zone™ standard.
 
 ## Core Features
 
-### 1. Presence Zone (PZ) Detection
+### 1. Presence Zone™ (PZ) Detection
 
-The centerpiece of PZD is the **Presence Zone**—a configurable area within your camera's view where the system considers you "present."
+The centerpiece of PZDetector™ is the **Presence Zone™**—the proprietary presence boundary standard defining a configurable spatial perimeter within your workspace.
 
 **How it works:**
 - Configurable rectangular region based on % of frame width/height
@@ -17,14 +19,14 @@ The centerpiece of PZD is the **Presence Zone**—a configurable area within you
 **Use case:** Prevent false triggers from pets, moving curtains, or background activity
 
 **How to adjust:**
-1. Launch PZD in calibration mode
+1. Launch PZDetector™ in calibration mode
 2. Adjust the **"PZ Reach"** slider (0.1 = tight, 1.0 = full frame)
 3. You'll see the blue rectangle overlay shrink/grow
 4. Click **"FINISH SETUP & GLAZE"** when satisfied
 
 ### 2. Glazed Vision (Privacy-First Detection)
 
-PZD uses **Glazed Vision**—a privacy-respecting motion detection method that uses extreme blur and downsampling to detect presence without capturing any biometric data.
+PZDetector™ uses **Glazed Vision**—a privacy-respecting motion detection method that uses extreme blur and downsampling to detect presence without capturing any biometric data.
 
 **The process:**
 1. Frame captured from webcam (640x480)

@@ -1,10 +1,12 @@
-PZD Guardian: Service Specification
+# PZDetector™ Guardian: Service Specification
 
-This document defines the "Three-Act" handover logic that transforms PZD from a jiggler-alternative into a professional security service.
+**By Chair-to-Keyboard™** | *The Human Centric Software Development Company*
 
-Act I: "Locks the Door" (Immediate Secure)
+This document defines the "Three-Act" handover logic that transforms PZDetector™ from a jiggler-alternative into a professional security service.
 
-Constraint: Must occur immediately when pzdConfidence reaches 0.0.
+## Act I: "Locks the Door" (Immediate Secure)
+
+**Constraint:** Must occur immediately when pzdConfidence reaches 0.0.
 
 Logic: Call ctypes.windll.user32.LockWorkStation() (Windows) or the equivalent system lock.
 

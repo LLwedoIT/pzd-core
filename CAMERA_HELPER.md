@@ -1,11 +1,13 @@
 # Camera Helper Tools
 
+**PZDetector™** by Chair-to-Keyboard™
+
 Two tools to help release camera resources when the LED stays on after the app closes.
 
 ## Quick Start
 
 ### Option 1: Automatic (Built-in)
-When you close PZDetector, the app automatically calls the camera helper to release the camera. **No action needed from you.**
+When you close PZDetector™, the app automatically calls the camera helper to release the camera. **No action needed from you.**
 
 ### Option 2: Manual Release
 If the LED still lingers, you can manually release the camera:

@@ -1,4 +1,6 @@
-# PZD Live Testing Guide
+# PZDetector™ Live Testing Guide
+
+**By Chair-to-Keyboard™** | *The Human Centric Software Development Company*
 
 **Last Updated:** February 16, 2026  
 **Version:** 2.0 (Multi-sensor waterfall + Phase 2/3 complete)
@@ -29,7 +31,7 @@ If you encounter install errors for winrt, Windows Hello will gracefully fall ba
 1. Open PowerShell in `c:\Users\LukeLockhart\pzd-core`
 2. Run: `python app/main.py`
 3. Verify window appears with:
-   - PZDetector header + LED indicator
+   - PZDetector™ header + LED indicator
    - Calibration banner (cyan, "CALIBRATION MODE: MAP YOUR ZONE")
    - Camera feed placeholder
    - Status: "WAITING..." or "CALIBRATING..."
@@ -381,7 +383,7 @@ Adapters should show **"Disabled"** in Admin State.
 ## Test Report Template
 
 ```
-## PZD v2.0 Test Report
+## PZDetector™ v2.0 Test Report
 
 **Date:** YYYY-MM-DD
 **Tester:** [Your Name]

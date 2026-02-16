@@ -1,6 +1,8 @@
-# Contributing to PZD (Presence Zone Detector)
+# Contributing to PZDetector™
 
-Thank you for your interest in contributing to PZD! This guide will help you get started.
+**By Chair-to-Keyboard™** | *The Human Centric Software Development Company*
+
+Thank you for your interest in contributing to PZDetector™! This guide will help you get started.
 
 ## Before You Start
 

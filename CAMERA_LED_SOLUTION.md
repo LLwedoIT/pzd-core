@@ -1,7 +1,9 @@
 # Camera LED Fix - Complete Solution
 
+**PZDetector™** by Chair-to-Keyboard™
+
 ## The Problem
-Windows keeps the webcam LED on briefly after closing PZDetector because:
+Windows keeps the webcam LED on briefly after closing PZDetector™ because:
 - Windows DirectShow/MSMF drivers hold exclusive camera handles
 - Python cannot force-release these handles at the driver level
 - Only admin-level device reset can force the handle release
@@ -11,7 +13,7 @@ Windows keeps the webcam LED on briefly after closing PZDetector because:
 We've created a **three-tier system** to handle this:
 
 ### Tier 1: Automatic (Best)
-**Run PZDetector with admin privileges**
+**Run PZDetector™ with admin privileges**
 - App automatically releases camera on close
 - LED turns off within 1-2 seconds
 - No manual intervention needed

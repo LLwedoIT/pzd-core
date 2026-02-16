@@ -1,4 +1,6 @@
-# Power Efficiency Strategy for PZDetector
+# Power Efficiency Strategy for PZDetector™
+
+**By Chair-to-Keyboard™** | *The Human Centric Software Development Company*
 
 ## Current Power Profile (UNOPTIMIZED)
 - **GlazedSensor**: 16.7 FPS continuous (60ms intervals)

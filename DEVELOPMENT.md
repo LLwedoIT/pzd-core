@@ -1,6 +1,8 @@
-# Development Guide for PZD
+# Development Guide for PZDetector™
 
-This guide covers setting up your development environment, understanding the codebase, and common development tasks.
+**By Chair-to-Keyboard™** | *The Human Centric Software Development Company*
+
+This guide covers setting up your development environment, understanding the codebase, and common development tasks for PZDetector™ and the Presence Zone™ standard.
 
 ## Prerequisites
 

@@ -1,4 +1,6 @@
-# Running PZDetector with Admin Privileges
+# Running PZDetector™ with Admin Privileges
+
+**PZDetector™** by Chair-to-Keyboard™
 
 ## Why Admin is Needed
 

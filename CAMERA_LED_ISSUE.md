@@ -1,7 +1,9 @@
 # Camera LED Issue - Known Windows DirectShow Limitation
 
+**PZDetector™** by Chair-to-Keyboard™
+
 ## Problem
-On Windows systems, the webcam LED remains on briefly after closing the PZDetector application.
+On Windows systems, the webcam LED remains on briefly after closing the PZDetector™ application.
 
 ## Root Cause
 This is a known limitation of Windows DirectShow/MSMF (Media Foundation) camera drivers:

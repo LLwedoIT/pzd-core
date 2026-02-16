@@ -1,6 +1,7 @@
 ## Description
 
 <!-- Brief description of the changes in this PR -->
+<!-- PZDetector™ by Chair-to-Keyboard™ -->
 
 ## Type of Change
 

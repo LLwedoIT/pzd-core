@@ -1,6 +1,8 @@
-# PZD Code Standards
+# PZDetector™ Code Standards
 
-This document defines coding conventions and best practices for the PZD project.
+**By Chair-to-Keyboard™** | *The Human Centric Software Development Company*
+
+This document defines coding conventions and best practices for the PZDetector™ project.
 
 ## Core Principles
 

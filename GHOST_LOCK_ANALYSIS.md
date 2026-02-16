@@ -1,8 +1,10 @@
 # Ghost-Lock Architecture Analysis & Feature Porting Roadmap
 
+**By Chair-to-Keyboard™** | *The Human Centric Software Development Company*
+
 **Analysis Date:** February 16, 2026  
 **Source Repo:** LLwedoIT/Ghost-Lock (C# WinForms, Feb 11-15, 2026)  
-**Target:** PZD (Python/Tkinter) Feature Integration
+**Target:** PZDetector™ (Python/Tkinter) Feature Integration
 
 ---
 
@@ -16,13 +18,13 @@ Ghost-Lock is a **significantly more mature production-ready system** than the c
 4. **Smart features** (app awareness, biometric verification, network control)
 5. **Professional UI** with tray icon state indicators
 
-**Key Insight:** PZD currently implements only 1 of Ghost-Lock's 7 major components. We can incrementally port features to create a production-ready system.
+**Key Insight:** PZDetector™ currently implements only 1 of Ghost-Lock's 7 major components. We can incrementally port features to create a production-ready system.
 
 ---
 
 ## Architecture Comparison
 
-### Current PZD Architecture
+### Current PZDetector™ Architecture
 ```
 GlazedSensor (camera only)
     ↓

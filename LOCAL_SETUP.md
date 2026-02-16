@@ -1,11 +1,18 @@
-1. Install Dependencies
+# PZDetector™ Local Setup
 
+**By Chair-to-Keyboard™** | *The Human Centric Software Development Company*
+
+## 1. Install Dependencies
+
+```bash
 pip install opencv-python numpy Pillow
+```
 
+## 2. Run the Desktop Core
 
-2. Run the Desktop Core
-
+```bash
 python app/main.py
+```
 
 
 3. Push to GitHub (If not done)

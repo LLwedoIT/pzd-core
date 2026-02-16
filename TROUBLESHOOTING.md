@@ -1,6 +1,8 @@
-# PZD Troubleshooting Guide
+# PZDetector™ Troubleshooting Guide
 
-Common issues and solutions for Presence Zone Detector.
+**By Chair-to-Keyboard™** | *The Human Centric Software Development Company*
+
+Common issues and solutions for PZDetector™ and the Presence Zone™ standard.
 
 ## Installation & Setup
 
